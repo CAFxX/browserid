@@ -197,7 +197,7 @@ function router(app) {
 
 // If externally we're serving content over SSL we can enable things
 // like strict transport security and change the way cookies are set
-var overSSL = ;
+var overSSL = (config.get('scheme') == 'https');
 
 // #1 - Setup health check / heartbeat middleware.
 // This is in front of logging on purpose.  see issue #537
@@ -256,15 +256,6 @@ if (config.get('verifier_url')) {
 config.performSubstitution(app);
 
 // #7 - handle /wsapi requests
-wsapi.setup(app);
-
-// #8 - handle views for dynamicish content
-router(app);
-
-// #9 - if nothing else has caught this request, serve static files
-app.use(express.static(path.join(__dirname, "..", "resources", "static")));
-
-
 app.use(express.cookieParser());
 
 var cookieSessionMiddleware = sessions({
@@ -353,6 +344,15 @@ app.use(function(req, resp, next) {
   }
   return next();
 });
+
+wsapi.setup(app);
+
+// #8 - handle views for dynamicish content
+router(app);
+
+// #9 - if nothing else has caught this request, serve static files
+app.use(express.static(path.join(__dirname, "..", "resources", "static")));
+
 
 // open the databse
 db.open(config.get('database'), function (error) {
